@@ -1,0 +1,133 @@
+name: cnad
+
+services:
+  redis:
+    container_name: redis
+    image: redis:7.2-alpine
+    restart: unless-stopped
+    command: redis-server --requirepass redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - ./volumes/redis:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - cnad
+
+  postgres_auth:
+    container_name: postgres_auth
+    image: postgres:16.8
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: auth
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "admin", "-d", "auth"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - ./volumes/postgres-auth:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - cnad
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3.13.4-management-alpine
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    healthcheck:
+      test: rabbitmq-diagnostics -q status
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - ./volumes/rabbitmq:/var/lib/rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - cnad
+
+  gateway:
+    container_name: gateway
+    build:
+      context: ../gateway
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    env_file:
+      - path: ../gateway/.env
+        required: true
+    environment:
+      - AUTH_BASE_URL=http://auth:8000
+      - REDIS_HOST=redis
+      - LOKI_HOST=http://alloy:3100
+    ports:
+      - "8001:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+        restart: true
+    networks:
+      - cnad
+
+  notification:
+    container_name: notification
+    build:
+      context: ../notification
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    env_file:
+      - path: ../notification/.env
+        required: true
+    environment:
+      - RABBITMQ_ENDPOINT=amqp://admin:admin@rabbitmq:5672
+      - LOKI_HOST=http://loki:3100
+    ports:
+      - "8002:8000"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+        restart: true
+    networks:
+      - cnad
+
+  auth:
+    container_name: auth
+    build:
+      context: ../auth
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    env_file:
+      - path: ../auth/.env
+        required: true
+    environment:
+      - RABBITMQ_ENDPOINT=amqp://admin:admin@rabbitmq:5672
+      - DATABASE_HOST=postgres_auth
+      - LOKI_HOST=http://loki:3100
+    ports:
+      - "8003:8000"
+    depends_on:
+      postgres_auth:
+        condition: service_healthy
+        restart: true
+      rabbitmq:
+        condition: service_healthy
+        restart: true
+    networks:
+      - cnad
+
+networks:
+  cnad:
