@@ -13,6 +13,8 @@ For now, it contains the following services:
 - Notification Service
 - Auth Service
 
+## Installation
+
 1. clone all the repo in the same folder
 2. run `docker compose -f docker/docker-compose.yaml up -d`
 3. run `docker compose -f docker/docker-compose.yaml down` to stop the services
