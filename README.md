@@ -16,8 +16,9 @@ For now, it contains the following services:
 ## Installation
 
 1. clone all the repo in the same folder
-2. run `docker compose -f docker/docker-compose.yaml up -d`
-3. run `docker compose -f docker/docker-compose.yaml down` to stop the services
+2. create the `.env` for each service
+3. run `docker compose -f docker/docker-compose.yaml up -d`
+4. run `docker compose -f docker/docker-compose.yaml down` to stop the services
 
 ```bash
 docker compose -f docker/docker-compose.yaml up -d
