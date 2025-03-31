@@ -73,7 +73,6 @@ services:
     environment:
       - AUTH_BASE_URL=http://auth:8000
       - REDIS_HOST=redis
-      - LOKI_HOST=http://alloy:3100
     ports:
       - "8001:8000"
     depends_on:
@@ -94,7 +93,6 @@ services:
         required: true
     environment:
       - RABBITMQ_ENDPOINT=amqp://admin:admin@rabbitmq:5672
-      - LOKI_HOST=http://loki:3100
     ports:
       - "8002:8000"
     depends_on:
@@ -116,7 +114,6 @@ services:
     environment:
       - RABBITMQ_ENDPOINT=amqp://admin:admin@rabbitmq:5672
       - DATABASE_HOST=postgres_auth
-      - LOKI_HOST=http://loki:3100
     ports:
       - "8003:8000"
     depends_on:
