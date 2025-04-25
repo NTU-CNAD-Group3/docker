@@ -67,9 +67,7 @@ services:
       context: ../gateway
       dockerfile: Dockerfile.dev
     restart: unless-stopped
-    env_file:
-      - path: ../gateway/.env
-        required: true
+    env_file: "../gateway/.env"
     environment:
       - AUTH_BASE_URL=http://auth:8000
       - REDIS_HOST=redis
@@ -88,9 +86,7 @@ services:
       context: ../notification
       dockerfile: Dockerfile.dev
     restart: unless-stopped
-    env_file:
-      - path: ../notification/.env
-        required: true
+    env_file: "../notification/.env"
     environment:
       - RABBITMQ_ENDPOINT=amqp://admin:admin@rabbitmq:5672
     ports:
@@ -108,9 +104,7 @@ services:
       context: ../auth
       dockerfile: Dockerfile.dev
     restart: unless-stopped
-    env_file:
-      - path: ../auth/.env
-        required: true
+    env_file: "../auth/.env"
     environment:
       - RABBITMQ_ENDPOINT=amqp://admin:admin@rabbitmq:5672
       - DATABASE_HOST=postgres_auth
@@ -121,6 +115,24 @@ services:
         condition: service_healthy
         restart: true
       rabbitmq:
+        condition: service_healthy
+        restart: true
+    networks:
+      - cnad
+
+  backend:
+    container_name: backend
+    build:
+      context: ../backend
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    env_file: "../backend/.env"
+    environment:
+      - DATABASE_HOST=postgres_auth
+    ports:
+      - "8004:8000"
+    depends_on:
+      postgres_auth:
         condition: service_healthy
         restart: true
     networks:
