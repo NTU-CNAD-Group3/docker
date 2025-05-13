@@ -21,5 +21,5 @@ For now, it contains the following services:
 4. run `docker compose -f docker/docker-compose.yaml down` to stop the services
 
 ```bash
-docker compose -f docker/docker-compose.yaml up -d
+docker compose -f docker/docker-compose.yaml up -d --build
 ```
