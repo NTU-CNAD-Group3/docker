@@ -70,6 +70,7 @@ services:
     env_file: "../gateway/.env"
     environment:
       - AUTH_BASE_URL=http://auth:8000
+      - BACKEND_BASE_URL=http://backend:8000
       - REDIS_HOST=redis
     ports:
       - "8001:8000"
